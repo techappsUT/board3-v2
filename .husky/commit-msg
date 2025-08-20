@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Validate commit message format
+npx --no -- commitlint --edit $1
+
+# Check commit message for sensitive information
+echo "🔍 Checking commit message for sensitive information..."
+if grep -iE "(password|secret|key|token|api_key)" "$1"; then
+  echo "❌ Commit message contains sensitive information!"
+  echo "Please remove secrets from your commit message."
+  exit 1
+fi
+
+echo "✅ Commit message validation passed!"

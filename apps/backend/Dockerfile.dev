@@ -1,0 +1,45 @@
+# Development Dockerfile for Backend
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nestjs -u 1001
+
+# Copy package files
+COPY package*.json ./
+COPY turbo.json ./
+COPY apps/backend/package*.json ./apps/backend/
+COPY packages/types/package*.json ./packages/types/
+COPY packages/shared/package*.json ./packages/shared/
+
+# Install dependencies
+RUN npm ci --frozen-lockfile
+
+# Copy source code
+COPY apps/backend ./apps/backend
+COPY packages ./packages
+
+# Build shared packages
+RUN npm run build --workspace=@board3/types
+RUN npm run build --workspace=@board3/shared
+
+# Change ownership
+RUN chown -R nestjs:nodejs /app
+USER nestjs
+
+# Expose port
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3001/health || exit 1
+
+# Start development server
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["npm", "run", "dev", "--workspace=backend"]

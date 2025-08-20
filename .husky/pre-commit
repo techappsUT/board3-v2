@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Check for secrets
+echo "🔒 Checking for secrets..."
+if grep -r --include="*.ts" --include="*.js" --include="*.tsx" --include="*.jsx" \
+  -E "(password|secret|key|token).*=.*['\"][^'\"]{8,}" . --exclude-dir=node_modules --exclude-dir=.git; then
+  echo "❌ Potential secrets found! Please remove them before committing."
+  exit 1
+fi
+
+# Type checking
+echo "📘 Running TypeScript type checking..."
+npm run type-check
+
+# Linting
+echo "🔧 Running ESLint..."
+npm run lint
+
+# Security linting
+echo "🛡️ Running security checks..."
+npm run test:security
+
+# Format check
+echo "💅 Checking code formatting..."
+npm run format:check
+
+# Run tests
+echo "🧪 Running tests..."
+npm run test:unit
+
+# Staged files linting
+echo "🎯 Linting staged files..."
+npx lint-staged
+
+echo "✅ All pre-commit checks passed!"

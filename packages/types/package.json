@@ -1,0 +1,31 @@
+{
+  "name": "@board3/types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types for Board3 project",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "keywords": [
+    "types",
+    "typescript",
+    "board3",
+    "shared"
+  ],
+  "devDependencies": {
+    "typescript": "5.3.3"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  }
+}
