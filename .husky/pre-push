@@ -1,0 +1,26 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚀 Running pre-push checks..."
+
+# Build check
+echo "🏗️ Running build check..."
+npm run build
+
+# Full test suite
+echo "🧪 Running full test suite..."
+npm run test
+
+# Security audit
+echo "🔒 Running security audit..."
+npm audit --audit-level=moderate
+
+# Check for TODO/FIXME in production code
+echo "📝 Checking for TODO/FIXME comments..."
+if git diff --cached --name-only | grep -E '\.(ts|tsx|js|jsx)$' | xargs grep -l "TODO\|FIXME" 2>/dev/null; then
+  echo "⚠️ Warning: TODO/FIXME comments found in staged files"
+  echo "Consider addressing these before pushing to production"
+  # Don't fail, just warn
+fi
+
+echo "✅ All pre-push checks passed!"

@@ -1,0 +1,611 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums for type safety and consistency
+enum CloudProvider {
+  AWS
+  AZURE
+  GCP
+  OCI
+  MULTI_CLOUD
+}
+
+enum DeploymentStatus {
+  DRAFT
+  PENDING
+  DEPLOYING
+  DEPLOYED
+  FAILED
+  DESTROYING
+  DESTROYED
+}
+
+enum PipelineStatus {
+  IDLE
+  RUNNING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
+enum PipelineStageType {
+  VALIDATE
+  PLAN
+  SECURITY_SCAN
+  COST_ANALYSIS
+  APPLY
+  TEST
+  DESTROY
+}
+
+enum ResourceType {
+  COMPUTE
+  STORAGE
+  NETWORK
+  SECURITY
+  DATABASE
+  MONITORING
+  CONTAINER
+  SERVERLESS
+}
+
+enum PermissionAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  DEPLOY
+  DESTROY
+  SHARE
+  ADMIN
+}
+
+enum PermissionResource {
+  DESIGN
+  TEMPLATE
+  PIPELINE
+  STATE
+  USER
+  ROLE
+  ORGANIZATION
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  DEPLOY
+  DESTROY
+  LOGIN
+  LOGOUT
+  EXPORT
+  IMPORT
+  SHARE
+}
+
+enum NotificationType {
+  DEPLOYMENT_SUCCESS
+  DEPLOYMENT_FAILED
+  DRIFT_DETECTED
+  SECURITY_ALERT
+  COST_THRESHOLD
+  COLLABORATION_INVITE
+}
+
+// Core entities
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  username          String?   @unique
+  firstName         String
+  lastName          String
+  passwordHash      String    // bcrypt hashed
+  isEmailVerified   Boolean   @default(false)
+  emailVerifiedAt   DateTime?
+  mfaEnabled        Boolean   @default(false)
+  mfaSecret         String?   // Encrypted TOTP secret
+  profileImageUrl   String?
+  timezone          String    @default("UTC")
+  preferences       Json?     // User preferences as JSON
+  lastLoginAt       DateTime?
+  lastActiveAt      DateTime?
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  organizations     OrganizationMember[]
+  designs           Design[]
+  templates         Template[]
+  createdPipelines  Pipeline[]         @relation("PipelineCreator")
+  apiKeys           ApiKey[]
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+  comments          Comment[]
+  designShares      DesignShare[]      @relation("SharedBy")
+  receivedShares    DesignShare[]      @relation("SharedWith")
+  refreshTokens     RefreshToken[]
+
+  @@map("users")
+  @@index([email])
+  @@index([username])
+  @@index([isActive])
+  @@index([lastActiveAt])
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  logoUrl     String?
+  domain      String?  // For email domain verification
+  settings    Json?    // Organization settings as JSON
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  members   OrganizationMember[]
+  roles     Role[]
+  designs   Design[]
+  templates Template[]
+  pipelines Pipeline[]
+  states    State[]
+
+  @@map("organizations")
+  @@index([slug])
+  @@index([domain])
+}
+
+model OrganizationMember {
+  id       String   @id @default(cuid())
+  userId   String
+  orgId    String
+  roleId   String?
+  joinedAt DateTime @default(now())
+  isActive Boolean  @default(true)
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  role         Role?        @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, orgId])
+  @@map("organization_members")
+  @@index([userId])
+  @@index([orgId])
+  @@index([roleId])
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  orgId       String
+  isDefault   Boolean  @default(false)
+  isSystem    Boolean  @default(false) // System roles cannot be deleted
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  organization Organization         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  members      OrganizationMember[]
+  permissions  Permission[]
+
+  @@unique([name, orgId])
+  @@map("roles")
+  @@index([orgId])
+  @@index([isDefault])
+}
+
+model Permission {
+  id       String             @id @default(cuid())
+  roleId   String
+  action   PermissionAction
+  resource PermissionResource
+  scope    Json?              // Additional scope restrictions
+
+  // Relations
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, action, resource])
+  @@map("permissions")
+  @@index([roleId])
+}
+
+model Design {
+  id              String           @id @default(cuid())
+  name            String
+  description     String?
+  version         String           @default("1.0.0")
+  cloudProvider   CloudProvider
+  status          DeploymentStatus @default(DRAFT)
+  canvas          Json             // Visual design data
+  terraformCode   String?          // Generated Terraform code
+  variables       Json?            // Terraform variables
+  outputs         Json?            // Terraform outputs
+  tags            Json?            // Resource tags
+  isPublic        Boolean          @default(false)
+  isTemplate      Boolean          @default(false)
+  templateId      String?          // If created from template
+  creatorId       String
+  orgId           String
+  lastDeployedAt  DateTime?
+  estimatedCost   Decimal?         @db.Decimal(10, 2)
+  resourceCount   Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  creator      User            @relation(fields: [creatorId], references: [id])
+  organization Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  template     Template?       @relation(fields: [templateId], references: [id])
+  versions     DesignVersion[]
+  states       State[]
+  pipelines    Pipeline[]
+  shares       DesignShare[]
+  comments     Comment[]
+  resources    Resource[]
+
+  @@map("designs")
+  @@index([creatorId])
+  @@index([orgId])
+  @@index([templateId])
+  @@index([cloudProvider])
+  @@index([status])
+  @@index([isPublic])
+  @@index([createdAt])
+}
+
+model DesignVersion {
+  id            String   @id @default(cuid())
+  designId      String
+  version       String
+  changelog     String?
+  canvas        Json
+  terraformCode String?
+  variables     Json?
+  createdAt     DateTime @default(now())
+  createdBy     String
+
+  // Relations
+  design Design @relation(fields: [designId], references: [id], onDelete: Cascade)
+
+  @@unique([designId, version])
+  @@map("design_versions")
+  @@index([designId])
+  @@index([createdAt])
+}
+
+model Template {
+  id              String        @id @default(cuid())
+  name            String
+  description     String?
+  category        String?
+  cloudProvider   CloudProvider
+  canvas          Json          // Template structure
+  terraformCode   String?       // Base Terraform code
+  variables       Json?         // Template variables with defaults
+  tags            Json?         // Default tags
+  isPublic        Boolean       @default(false)
+  downloadCount   Int           @default(0)
+  rating          Decimal?      @db.Decimal(3, 2)
+  ratingCount     Int           @default(0)
+  creatorId       String
+  orgId           String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  creator      User           @relation(fields: [creatorId], references: [id])
+  organization Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  designs      Design[]
+
+  @@map("templates")
+  @@index([creatorId])
+  @@index([orgId])
+  @@index([cloudProvider])
+  @@index([category])
+  @@index([isPublic])
+  @@index([rating])
+}
+
+model State {
+  id                String   @id @default(cuid())
+  designId          String
+  orgId             String
+  environment       String   @default("default")
+  backendType       String   @default("s3") // s3, azurerm, gcs, etc.
+  backendConfig     Json     // Encrypted backend configuration
+  stateData         String?  // Encrypted Terraform state
+  stateHash         String?  // Hash for integrity check
+  lockInfo          Json?    // State lock information
+  isLocked          Boolean  @default(false)
+  lockedAt          DateTime?
+  lockedBy          String?
+  lastPlanAt        DateTime?
+  lastApplyAt       DateTime?
+  driftDetectedAt   DateTime?
+  driftCheckEnabled Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  design       Design       @relation(fields: [designId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  driftLogs    DriftLog[]
+
+  @@unique([designId, environment])
+  @@map("states")
+  @@index([designId])
+  @@index([orgId])
+  @@index([environment])
+  @@index([isLocked])
+  @@index([driftDetectedAt])
+}
+
+model Pipeline {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  designId    String
+  orgId       String
+  creatorId   String
+  config      Json           // Pipeline configuration
+  triggers    Json?          // Trigger configuration
+  status      PipelineStatus @default(IDLE)
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relations
+  design       Design          @relation(fields: [designId], references: [id], onDelete: Cascade)
+  organization Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  creator      User            @relation("PipelineCreator", fields: [creatorId], references: [id])
+  executions   PipelineExecution[]
+
+  @@map("pipelines")
+  @@index([designId])
+  @@index([orgId])
+  @@index([creatorId])
+  @@index([status])
+  @@index([isActive])
+}
+
+model PipelineExecution {
+  id          String         @id @default(cuid())
+  pipelineId  String
+  status      PipelineStatus @default(RUNNING)
+  startedAt   DateTime       @default(now())
+  completedAt DateTime?
+  triggeredBy String?        // User ID or system trigger
+  logs        String?        // Execution logs
+  artifacts   Json?          // Generated artifacts
+
+  // Relations
+  pipeline Pipeline           @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  stages   PipelineStage[]
+
+  @@map("pipeline_executions")
+  @@index([pipelineId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model PipelineStage {
+  id          String            @id @default(cuid())
+  executionId String
+  name        String
+  type        PipelineStageType
+  status      PipelineStatus    @default(IDLE)
+  startedAt   DateTime?
+  completedAt DateTime?
+  duration    Int?              // Duration in milliseconds
+  logs        String?
+  output      Json?
+  order       Int
+
+  // Relations
+  execution PipelineExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@map("pipeline_stages")
+  @@index([executionId])
+  @@index([status])
+  @@index([order])
+}
+
+model Resource {
+  id           String       @id @default(cuid())
+  designId     String
+  name         String
+  type         ResourceType
+  provider     String       // e.g., "aws_instance", "azurerm_virtual_machine"
+  address      String       // Terraform resource address
+  config       Json         // Resource configuration
+  dependencies Json?        // Resource dependencies
+  tags         Json?
+  estimatedCost Decimal?    @db.Decimal(10, 2)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  // Relations
+  design Design @relation(fields: [designId], references: [id], onDelete: Cascade)
+
+  @@unique([designId, address])
+  @@map("resources")
+  @@index([designId])
+  @@index([type])
+  @@index([provider])
+}
+
+model DriftLog {
+  id          String   @id @default(cuid())
+  stateId     String
+  detectedAt  DateTime @default(now())
+  changes     Json     // Detected changes
+  severity    String   @default("INFO") // INFO, WARNING, CRITICAL
+  isResolved  Boolean  @default(false)
+  resolvedAt  DateTime?
+  resolvedBy  String?
+
+  // Relations
+  state State @relation(fields: [stateId], references: [id], onDelete: Cascade)
+
+  @@map("drift_logs")
+  @@index([stateId])
+  @@index([detectedAt])
+  @@index([severity])
+  @@index([isResolved])
+}
+
+model DesignShare {
+  id          String   @id @default(cuid())
+  designId    String
+  sharedById  String
+  sharedWithId String
+  permissions Json     // Share permissions
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  design     Design @relation(fields: [designId], references: [id], onDelete: Cascade)
+  sharedBy   User   @relation("SharedBy", fields: [sharedById], references: [id])
+  sharedWith User   @relation("SharedWith", fields: [sharedWithId], references: [id])
+
+  @@unique([designId, sharedById, sharedWithId])
+  @@map("design_shares")
+  @@index([designId])
+  @@index([sharedById])
+  @@index([sharedWithId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  designId  String
+  authorId  String
+  content   String
+  position  Json?    // Position on canvas
+  isResolved Boolean @default(false)
+  parentId  String?  // For nested comments
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  design   Design    @relation(fields: [designId], references: [id], onDelete: Cascade)
+  author   User      @relation(fields: [authorId], references: [id])
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("CommentReplies")
+
+  @@map("comments")
+  @@index([designId])
+  @@index([authorId])
+  @@index([parentId])
+  @@index([createdAt])
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  keyHash     String    @unique // Hashed API key
+  permissions Json?     // Scoped permissions
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
+  @@index([userId])
+  @@index([keyHash])
+  @@index([isActive])
+  @@index([expiresAt])
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  userId      String?
+  action      AuditAction
+  resource    String      // Resource type
+  resourceId  String?     // Resource ID
+  details     Json?       // Additional details
+  ipAddress   String?
+  userAgent   String?
+  timestamp   DateTime    @default(now())
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([resourceId])
+  @@index([timestamp])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?            // Additional notification data
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+  @@index([userId])
+  @@index([type])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  data      Json?    // Session data
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sessions")
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([isRevoked])
+}

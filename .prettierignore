@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+coverage/
+
+# Environment files
+.env*
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Generated files
+*.d.ts.map
+*.js.map
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+
+# Git files
+.gitignore
+.gitattributes
+
+# Documentation that should preserve formatting
+CHANGELOG.md
+LICENSE
+
+# Prisma generated files
+prisma/migrations/

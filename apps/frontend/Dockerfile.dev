@@ -1,0 +1,45 @@
+# Development Dockerfile for Frontend
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+
+# Copy package files
+COPY package*.json ./
+COPY turbo.json ./
+COPY apps/frontend/package*.json ./apps/frontend/
+COPY packages/types/package*.json ./packages/types/
+COPY packages/shared/package*.json ./packages/shared/
+
+# Install dependencies
+RUN npm ci --frozen-lockfile
+
+# Copy source code
+COPY apps/frontend ./apps/frontend
+COPY packages ./packages
+
+# Build shared packages
+RUN npm run build --workspace=@board3/types
+RUN npm run build --workspace=@board3/shared
+
+# Change ownership
+RUN chown -R nextjs:nodejs /app
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Start development server
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["npm", "run", "dev", "--workspace=frontend"]

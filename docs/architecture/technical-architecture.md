@@ -1,7 +1,10 @@
 # Board3 Technical Architecture
 
 ## Overview
-Board3 follows a modern, microservices-oriented architecture with military-grade security and sub-millisecond performance targets. The system is designed for scalability, maintainability, and zero-trust security principles.
+
+Board3 follows a modern, microservices-oriented architecture with military-grade
+security and sub-millisecond performance targets. The system is designed for
+scalability, maintainability, and zero-trust security principles.
 
 ## System Architecture
 
@@ -11,19 +14,19 @@ graph TB
         UI[Next.js UI]
         WS[WebSocket Client]
     end
-    
+
     subgraph "CDN & Security"
         CDN[CloudFlare CDN]
         WAF[Web Application Firewall]
         LB[Load Balancer]
     end
-    
+
     subgraph "API Gateway"
         GW[API Gateway]
         AUTH[Auth Service]
         RATE[Rate Limiter]
     end
-    
+
     subgraph "Core Services"
         DESIGN[Design Service]
         AI[AI Service]
@@ -31,19 +34,19 @@ graph TB
         CICD[CI/CD Service]
         TEMPLATE[Template Service]
     end
-    
+
     subgraph "Data Layer"
         PG[(PostgreSQL)]
         REDIS[(Redis)]
         S3[(Object Storage)]
     end
-    
+
     subgraph "External Services"
         CLOUD[Cloud Providers]
         GIT[Git Repositories]
         MONITOR[Monitoring]
     end
-    
+
     UI --> CDN
     WS --> CDN
     CDN --> WAF
@@ -56,13 +59,13 @@ graph TB
     GW --> TERRAFORM
     GW --> CICD
     GW --> TEMPLATE
-    
+
     DESIGN --> PG
     AI --> REDIS
     TERRAFORM --> S3
     CICD --> GIT
     TEMPLATE --> PG
-    
+
     TERRAFORM --> CLOUD
     CICD --> CLOUD
     ALL --> MONITOR
@@ -71,6 +74,7 @@ graph TB
 ## Technology Stack
 
 ### Frontend Architecture
+
 - **Framework**: Next.js 14+ with App Router
 - **Language**: TypeScript (strict mode)
 - **Styling**: Tailwind CSS with CSS-in-JS for dynamic themes
@@ -79,12 +83,14 @@ graph TB
 - **Canvas**: React Flow for visual design interface
 
 **Performance Targets**:
+
 - First Contentful Paint: <1.5s
 - Time to Interactive: <3s
 - Bundle size: <100KB critical path
 - Lighthouse score: >90
 
 ### Backend Architecture
+
 - **Runtime**: Node.js 20+ with TypeScript
 - **Framework**: NestJS for modular, scalable architecture
 - **Authentication**: JWT with refresh tokens, hardware key support
@@ -93,6 +99,7 @@ graph TB
 - **Message Queue**: BullMQ for background jobs
 
 **Performance Targets**:
+
 - API response: <1ms simple queries, <10ms complex operations
 - Database queries: <5ms OLTP, <50ms analytics
 - AI generation: <10s for infrastructure designs
@@ -101,13 +108,16 @@ graph TB
 ## Service Architecture
 
 ### Design Service
+
 **Responsibilities**:
+
 - Visual canvas state management
 - Real-time collaboration via WebSockets
 - Component library management
 - Export/import functionality
 
 **Database Schema**:
+
 ```sql
 -- Projects and designs
 CREATE TABLE projects (
@@ -133,13 +143,16 @@ CREATE TABLE designs (
 ```
 
 ### AI Service
+
 **Responsibilities**:
+
 - Natural language processing for infrastructure requests
 - Code generation and validation
 - Best practice recommendations
 - Cost optimization suggestions
 
 **Implementation**:
+
 ```typescript
 interface AIRequest {
   prompt: string;
@@ -159,13 +172,16 @@ interface AIResponse {
 ```
 
 ### Terraform Service
+
 **Responsibilities**:
+
 - Terraform code generation and validation
 - State management with encrypted backends
 - Drift detection and remediation
 - Multi-cloud provider support
 
 **State Management**:
+
 ```typescript
 interface TerraformState {
   id: string;
@@ -183,13 +199,16 @@ interface TerraformState {
 ```
 
 ### CI/CD Service
+
 **Responsibilities**:
+
 - Pipeline orchestration
 - Pre-deployment security scanning
 - Automated testing and validation
 - Deployment automation
 
 **Pipeline Configuration**:
+
 ```yaml
 stages:
   - validate:
@@ -207,20 +226,23 @@ stages:
 ## Security Architecture
 
 ### Zero-Trust Implementation
+
 - **Principle**: Never trust, always verify
-- **Implementation**: 
+- **Implementation**:
   - All API calls require valid JWT tokens
   - Service-to-service mTLS communication
   - Encrypted data at rest and in transit
   - Continuous security monitoring
 
 ### Encryption Standards
+
 - **At Rest**: AES-256-GCM for database encryption
 - **In Transit**: TLS 1.3 minimum, mTLS for services
 - **Keys**: Hardware Security Module (HSM) integration
 - **Secrets**: Encrypted environment variables, automatic rotation
 
 ### Authentication & Authorization
+
 ```typescript
 interface SecurityContext {
   user: {
@@ -244,6 +266,7 @@ interface SecurityContext {
 ## Data Architecture
 
 ### PostgreSQL Schema Design
+
 ```sql
 -- Users and authentication
 CREATE TABLE users (
@@ -282,6 +305,7 @@ CREATE TABLE templates (
 ```
 
 ### Redis Caching Strategy
+
 ```typescript
 interface CacheStrategy {
   sessions: {
@@ -306,6 +330,7 @@ interface CacheStrategy {
 ## Integration Architecture
 
 ### Cloud Provider Integration
+
 ```typescript
 interface CloudProvider {
   name: 'aws' | 'azure' | 'gcp' | 'oci';
@@ -326,6 +351,7 @@ interface CloudService {
 ```
 
 ### Git Integration
+
 ```typescript
 interface GitIntegration {
   provider: 'github' | 'gitlab' | 'bitbucket';
@@ -350,6 +376,7 @@ interface GitIntegration {
 ## Performance Optimization
 
 ### Database Optimization
+
 ```sql
 -- Indexes for performance
 CREATE INDEX CONCURRENTLY idx_designs_project_id ON designs(project_id);
@@ -368,11 +395,13 @@ CREATE TABLE audit_logs (
 ```
 
 ### Caching Layers
+
 1. **L1**: In-memory application cache (Node.js Map)
 2. **L2**: Redis cluster for distributed caching
 3. **L3**: CDN for static assets and API responses
 
 ### API Optimization
+
 ```typescript
 // Response compression and optimization
 app.use(compression());
@@ -394,6 +423,7 @@ const pool = new Pool({
 ## Deployment Architecture
 
 ### Containerization
+
 ```dockerfile
 # Multi-stage build for optimization
 FROM node:20-alpine AS builder
@@ -410,6 +440,7 @@ CMD ["npm", "start"]
 ```
 
 ### Kubernetes Configuration
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -426,28 +457,29 @@ spec:
         app: board3-api
     spec:
       containers:
-      - name: api
-        image: board3/api:latest
-        ports:
-        - containerPort: 3000
-        env:
-        - name: DB_HOST
-          valueFrom:
-            secretKeyRef:
-              name: db-secret
-              key: host
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
+        - name: api
+          image: board3/api:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: host
+          resources:
+            requests:
+              memory: '256Mi'
+              cpu: '250m'
+            limits:
+              memory: '512Mi'
+              cpu: '500m'
 ```
 
 ## Monitoring and Observability
 
 ### Metrics Collection
+
 ```typescript
 interface Metrics {
   api: {
@@ -469,6 +501,7 @@ interface Metrics {
 ```
 
 ### Distributed Tracing
+
 ```typescript
 import { trace, SpanKind } from '@opentelemetry/api';
 
@@ -482,7 +515,7 @@ async function createDesign(data: DesignData) {
       'project.id': data.projectId,
     },
   });
-  
+
   try {
     const result = await designService.create(data);
     span.setStatus({ code: SpanStatusCode.OK });
@@ -500,12 +533,14 @@ async function createDesign(data: DesignData) {
 ## Scalability Considerations
 
 ### Horizontal Scaling
+
 - **API Services**: Stateless design for easy horizontal scaling
 - **Database**: Read replicas for query distribution
 - **Redis**: Cluster mode for high availability
 - **File Storage**: Object storage for terraform states and designs
 
 ### Auto-scaling Configuration
+
 ```yaml
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -519,23 +554,24 @@ spec:
   minReplicas: 3
   maxReplicas: 20
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
 ```
 
 ## Security Implementation
 
 ### Input Validation
+
 ```typescript
 import { z } from 'zod';
 
@@ -543,25 +579,30 @@ const CreateDesignSchema = z.object({
   name: z.string().min(1).max(255),
   projectId: z.string().uuid(),
   canvasData: z.object({
-    nodes: z.array(z.object({
-      id: z.string(),
-      type: z.string(),
-      position: z.object({
-        x: z.number(),
-        y: z.number(),
-      }),
-      data: z.record(z.any()),
-    })),
-    edges: z.array(z.object({
-      id: z.string(),
-      source: z.string(),
-      target: z.string(),
-    })),
+    nodes: z.array(
+      z.object({
+        id: z.string(),
+        type: z.string(),
+        position: z.object({
+          x: z.number(),
+          y: z.number(),
+        }),
+        data: z.record(z.any()),
+      })
+    ),
+    edges: z.array(
+      z.object({
+        id: z.string(),
+        source: z.string(),
+        target: z.string(),
+      })
+    ),
   }),
 });
 ```
 
 ### Rate Limiting
+
 ```typescript
 import rateLimit from 'express-rate-limit';
 
@@ -580,4 +621,6 @@ const aiLimiter = rateLimit({
 });
 ```
 
-This technical architecture provides a comprehensive foundation for building Board3 with enterprise-grade security, performance, and scalability requirements.
+This technical architecture provides a comprehensive foundation for building
+Board3 with enterprise-grade security, performance, and scalability
+requirements.
