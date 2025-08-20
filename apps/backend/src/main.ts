@@ -3,6 +3,7 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
+import { Logger as NestLogger } from '@nestjs/common';
 import compression from 'compression';
 import helmet from 'helmet';
 
@@ -15,9 +16,10 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
     cors: {
-      origin: process.env.NODE_ENV === 'production' 
-        ? [process.env.FRONTEND_URL!]
-        : ['http://localhost:3000', 'http://127.0.0.1:3000'],
+      origin:
+        process.env.NODE_ENV === 'production'
+          ? [process.env.FRONTEND_URL!]
+          : ['http://localhost:3000', 'http://127.0.0.1:3000'],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -26,27 +28,29 @@ async function bootstrap(): Promise<void> {
 
   const configService = app.get(ConfigService);
   const logger = app.get(Logger);
-  
+
   // Set global logger
   app.useLogger(logger);
 
   // Security middleware
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        scriptSrc: ["'self'"],
-        imgSrc: ["'self'", 'data:', 'https:'],
-        connectSrc: ["'self'"],
-        fontSrc: ["'self'"],
-        objectSrc: ["'none'"],
-        mediaSrc: ["'self'"],
-        frameSrc: ["'none'"],
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          scriptSrc: ["'self'"],
+          imgSrc: ["'self'", 'data:', 'https:'],
+          connectSrc: ["'self'"],
+          fontSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          mediaSrc: ["'self'"],
+          frameSrc: ["'none'"],
+        },
       },
-    },
-    crossOriginEmbedderPolicy: false,
-  }));
+      crossOriginEmbedderPolicy: false,
+    })
+  );
 
   // Compression middleware
   app.use(compression());
@@ -61,17 +65,14 @@ async function bootstrap(): Promise<void> {
         enableImplicitConversion: true,
       },
       disableErrorMessages: process.env.NODE_ENV === 'production',
-    }),
+    })
   );
 
   // Global filters
   app.useGlobalFilters(new HttpExceptionFilter());
 
   // Global interceptors
-  app.useGlobalInterceptors(
-    new LoggingInterceptor(),
-    new TransformInterceptor(),
-  );
+  app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());
 
   // API versioning
   app.enableVersioning({
@@ -106,7 +107,7 @@ async function bootstrap(): Promise<void> {
           description: 'Enter JWT token',
           in: 'header',
         },
-        'JWT-auth',
+        'JWT-auth'
       )
       .build();
 
@@ -132,16 +133,19 @@ async function bootstrap(): Promise<void> {
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+  const logger = new NestLogger('Main');
+  logger.log('SIGTERM received, shutting down gracefully');
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
+  const logger = new NestLogger('Main');
+  logger.log('SIGINT received, shutting down gracefully');
   process.exit(0);
 });
 
 bootstrap().catch((error) => {
-  console.error('Failed to start application:', error);
+  const logger = new NestLogger('Main');
+  logger.error('Failed to start application:', error);
   process.exit(1);
 });

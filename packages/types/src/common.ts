@@ -77,7 +77,7 @@ export interface AuditLog extends BaseEntity {
 }
 
 // Permission types
-export type Permission = 
+export type Permission =
   | 'projects.create'
   | 'projects.read'
   | 'projects.update'

@@ -9,10 +9,10 @@ export class SecurityMiddleware implements NestMiddleware {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    
+
     // Remove server header
     res.removeHeader('X-Powered-By');
-    
+
     next();
   }
 }

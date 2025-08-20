@@ -114,7 +114,7 @@ export interface AIRecommendation {
   autoFixAvailable: boolean;
 }
 
-export type RecommendationType = 
+export type RecommendationType =
   | 'cost_optimization'
   | 'security_improvement'
   | 'performance_enhancement'

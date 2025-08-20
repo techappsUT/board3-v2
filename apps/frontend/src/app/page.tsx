@@ -4,23 +4,27 @@ import { ArrowRightIcon, ShieldCheckIcon, BoltIcon, CogIcon } from '@heroicons/r
 
 export const metadata: Metadata = {
   title: 'Board3 - AI-Powered Cloud Infrastructure Platform',
-  description: 'Transform cloud infrastructure management with visual design tools and AI automation.',
+  description:
+    'Transform cloud infrastructure management with visual design tools and AI automation.',
 };
 
 const features = [
   {
     name: 'Visual Designer',
-    description: 'Drag-and-drop interface for building cloud architectures with real-time Terraform generation.',
+    description:
+      'Drag-and-drop interface for building cloud architectures with real-time Terraform generation.',
     icon: CogIcon,
   },
   {
     name: 'AI-Powered Generation',
-    description: 'Natural language processing to automatically generate infrastructure designs and code.',
+    description:
+      'Natural language processing to automatically generate infrastructure designs and code.',
     icon: BoltIcon,
   },
   {
     name: 'Military-Grade Security',
-    description: 'Zero-trust architecture with AES-256 encryption and comprehensive security controls.',
+    description:
+      'Zero-trust architecture with AES-256 encryption and comprehensive security controls.',
     icon: ShieldCheckIcon,
   },
 ];
@@ -59,7 +63,7 @@ export default function HomePage(): React.JSX.Element {
               AI-Powered Cloud Infrastructure Platform
             </h1>
             <p className="mt-6 text-lg leading-8 text-muted-foreground">
-              Design, deploy, and manage cloud infrastructure with visual tools and AI automation. 
+              Design, deploy, and manage cloud infrastructure with visual tools and AI automation.
               Reduce setup time by 50% while enforcing security and cost optimization from day one.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
@@ -104,8 +108,8 @@ export default function HomePage(): React.JSX.Element {
               Everything you need to manage cloud infrastructure
             </p>
             <p className="mt-6 text-lg leading-8 text-muted-foreground">
-              Board3 combines visual design, AI automation, and enterprise security to create the most 
-              advanced cloud infrastructure management platform.
+              Board3 combines visual design, AI automation, and enterprise security to create the
+              most advanced cloud infrastructure management platform.
             </p>
           </div>
           <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
@@ -138,8 +142,8 @@ export default function HomePage(): React.JSX.Element {
               Start building with Board3 today.
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-brand-100">
-              Join the future of cloud infrastructure management with military-grade security 
-              and sub-millisecond performance.
+              Join the future of cloud infrastructure management with military-grade security and
+              sub-millisecond performance.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link

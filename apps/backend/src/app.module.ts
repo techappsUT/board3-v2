@@ -7,6 +7,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './modules/database/database.module';
+import { CacheModule } from './modules/cache/cache.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ProjectsModule } from './modules/projects/projects.module';
@@ -95,6 +96,7 @@ import { SecurityMiddleware } from './common/middleware/security.middleware';
 
     // Core modules
     DatabaseModule,
+    CacheModule,
     AuthModule,
     UsersModule,
     ProjectsModule,
@@ -108,8 +110,6 @@ import { SecurityMiddleware } from './common/middleware/security.middleware';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer
-      .apply(LoggingMiddleware, SecurityMiddleware)
-      .forRoutes('*');
+    consumer.apply(LoggingMiddleware, SecurityMiddleware).forRoutes('*');
   }
 }

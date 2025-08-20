@@ -113,7 +113,8 @@ export const REGEX_PATTERNS = {
 export const ERROR_MESSAGES = {
   REQUIRED_FIELD: 'This field is required',
   INVALID_EMAIL: 'Please enter a valid email address',
-  INVALID_PASSWORD: 'Password must contain at least 8 characters, including uppercase, lowercase, number, and special character',
+  INVALID_PASSWORD:
+    'Password must contain at least 8 characters, including uppercase, lowercase, number, and special character',
   PASSWORD_MISMATCH: 'Passwords do not match',
   INVALID_UUID: 'Invalid UUID format',
   INVALID_URL: 'Invalid URL format',

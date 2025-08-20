@@ -1,17 +1,22 @@
 # Board3 Security Requirements
 
 ## Overview
-Board3 implements military-grade security standards to protect infrastructure designs, cloud credentials, and user data. The security framework follows zero-trust principles with defense-in-depth strategies.
+
+Board3 implements military-grade security standards to protect infrastructure
+designs, cloud credentials, and user data. The security framework follows
+zero-trust principles with defense-in-depth strategies.
 
 ## Security Framework
 
 ### Zero-Trust Architecture
+
 - **Principle**: Never trust, always verify
 - **Implementation**: Every request verified, encrypted, and monitored
 - **Microsegmentation**: Network and application-level isolation
 - **Continuous Verification**: Dynamic access controls based on risk assessment
 
 ### OWASP Top 10 Compliance
+
 Board3 addresses all OWASP Top 10 vulnerabilities:
 
 1. **Broken Access Control** → RBAC with granular permissions
@@ -28,6 +33,7 @@ Board3 addresses all OWASP Top 10 vulnerabilities:
 ## Encryption Standards
 
 ### Data at Rest
+
 ```typescript
 interface EncryptionAtRest {
   algorithm: 'AES-256-GCM';
@@ -46,15 +52,13 @@ interface EncryptionAtRest {
 ```
 
 ### Data in Transit
+
 ```typescript
 interface EncryptionInTransit {
   minimum: 'TLS-1.3';
-  cipherSuites: [
-    'TLS_AES_256_GCM_SHA384',
-    'TLS_CHACHA20_POLY1305_SHA256'
-  ];
+  cipherSuites: ['TLS_AES_256_GCM_SHA384', 'TLS_CHACHA20_POLY1305_SHA256'];
   certificateManagement: {
-    authority: 'Let\'s Encrypt' | 'Internal CA';
+    authority: "Let's Encrypt" | 'Internal CA';
     rotation: 'automatic-60-days';
     pinning: 'public-key-pinning';
   };
@@ -66,6 +70,7 @@ interface EncryptionInTransit {
 ```
 
 ### Key Management
+
 ```typescript
 interface KeyManagement {
   hsm: {
@@ -89,6 +94,7 @@ interface KeyManagement {
 ## Authentication & Authorization
 
 ### Multi-Factor Authentication
+
 ```typescript
 interface MFAConfiguration {
   required: boolean;
@@ -117,6 +123,7 @@ interface MFAConfiguration {
 ```
 
 ### Role-Based Access Control (RBAC)
+
 ```sql
 -- Granular permission system
 CREATE TABLE permissions (
@@ -146,11 +153,12 @@ INSERT INTO roles (name, description) VALUES
 ```
 
 ### Session Management
+
 ```typescript
 interface SessionSecurity {
   jwt: {
     algorithm: 'RS256'; // Asymmetric for better security
-    expiry: '15m';      // Short-lived access tokens
+    expiry: '15m'; // Short-lived access tokens
     issuer: 'board3.ai';
     audience: 'board3-api';
   };
@@ -171,52 +179,67 @@ interface SessionSecurity {
 ## Input Validation & Sanitization
 
 ### Schema Validation
+
 ```typescript
 import { z } from 'zod';
 
 // Terraform code validation
 const TerraformCodeSchema = z.object({
   provider: z.enum(['aws', 'azure', 'gcp', 'oci']),
-  resources: z.array(z.object({
-    type: z.string().regex(/^[a-z_]+$/),
-    name: z.string().regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/),
-    config: z.record(z.any()).refine(
-      (config) => !hasInjectionPatterns(config),
-      { message: 'Invalid configuration detected' }
-    ),
-  })),
-  variables: z.record(z.object({
-    type: z.string(),
-    default: z.any().optional(),
-    description: z.string().optional(),
-  })),
+  resources: z.array(
+    z.object({
+      type: z.string().regex(/^[a-z_]+$/),
+      name: z.string().regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/),
+      config: z
+        .record(z.any())
+        .refine((config) => !hasInjectionPatterns(config), {
+          message: 'Invalid configuration detected',
+        }),
+    })
+  ),
+  variables: z.record(
+    z.object({
+      type: z.string(),
+      default: z.any().optional(),
+      description: z.string().optional(),
+    })
+  ),
 });
 
 // Design data validation
 const DesignSchema = z.object({
-  name: z.string().min(1).max(255).regex(/^[a-zA-Z0-9\s\-_]+$/),
+  name: z
+    .string()
+    .min(1)
+    .max(255)
+    .regex(/^[a-zA-Z0-9\s\-_]+$/),
   description: z.string().max(1000).optional(),
   canvasData: z.object({
-    nodes: z.array(z.object({
-      id: z.string().uuid(),
-      type: z.string().regex(/^[a-z_]+$/),
-      position: z.object({
-        x: z.number().min(-10000).max(10000),
-        y: z.number().min(-10000).max(10000),
-      }),
-      data: z.record(z.any()).refine(validateNodeData),
-    })),
-    edges: z.array(z.object({
-      id: z.string().uuid(),
-      source: z.string().uuid(),
-      target: z.string().uuid(),
-      type: z.string().optional(),
-    })),
+    nodes: z.array(
+      z.object({
+        id: z.string().uuid(),
+        type: z.string().regex(/^[a-z_]+$/),
+        position: z.object({
+          x: z.number().min(-10000).max(10000),
+          y: z.number().min(-10000).max(10000),
+        }),
+        data: z.record(z.any()).refine(validateNodeData),
+      })
+    ),
+    edges: z.array(
+      z.object({
+        id: z.string().uuid(),
+        source: z.string().uuid(),
+        target: z.string().uuid(),
+        type: z.string().optional(),
+      })
+    ),
   }),
 });
 ```
 
 ### SQL Injection Prevention
+
 ```typescript
 // Using parameterized queries with Prisma
 class DesignRepository {
@@ -255,6 +278,7 @@ class DesignRepository {
 ```
 
 ### Cross-Site Scripting (XSS) Prevention
+
 ```typescript
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
@@ -287,6 +311,7 @@ export const cspPolicy = {
 ## API Security
 
 ### Rate Limiting
+
 ```typescript
 import rateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
@@ -302,7 +327,7 @@ const rateLimits = {
     max: 100, // 100 requests per window
     keyGenerator: (req) => req.user.id,
   }),
-  
+
   pro: rateLimit({
     store: new RedisStore({
       client: redisClient,
@@ -312,7 +337,7 @@ const rateLimits = {
     max: 1000, // 1000 requests per window
     keyGenerator: (req) => req.user.id,
   }),
-  
+
   ai: rateLimit({
     store: new RedisStore({
       client: redisClient,
@@ -326,6 +351,7 @@ const rateLimits = {
 ```
 
 ### API Authentication
+
 ```typescript
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
@@ -346,12 +372,12 @@ export async function authenticateToken(
 ): Promise<void> {
   const authHeader = req.headers.authorization;
   const token = authHeader?.split(' ')[1]; // Bearer TOKEN
-  
+
   if (!token) {
     res.status(401).json({ error: 'Access token required' });
     return;
   }
-  
+
   try {
     // Verify JWT signature
     const decoded = jwt.verify(token, process.env.JWT_PUBLIC_KEY!, {
@@ -359,21 +385,21 @@ export async function authenticateToken(
       issuer: 'board3.ai',
       audience: 'board3-api',
     }) as any;
-    
+
     // Check token blacklist
     const isBlacklisted = await redisClient.exists(`blacklist:${token}`);
     if (isBlacklisted) {
       res.status(401).json({ error: 'Token revoked' });
       return;
     }
-    
+
     // Load user permissions
     const user = await getUserWithPermissions(decoded.sub);
     if (!user) {
       res.status(401).json({ error: 'User not found' });
       return;
     }
-    
+
     req.user = user;
     next();
   } catch (error) {
@@ -385,6 +411,7 @@ export async function authenticateToken(
 ## Cloud Security
 
 ### Credential Management
+
 ```typescript
 interface CloudCredentials {
   aws: {
@@ -414,7 +441,7 @@ interface CloudCredentials {
 // Credential encryption
 export class CredentialManager {
   private kms: AWS.KMS;
-  
+
   async encryptCredential(credential: string): Promise<string> {
     const params = {
       KeyId: process.env.KMS_KEY_ID!,
@@ -424,11 +451,11 @@ export class CredentialManager {
         type: 'cloud-credential',
       },
     };
-    
+
     const result = await this.kms.encrypt(params).promise();
     return result.CiphertextBlob!.toString('base64');
   }
-  
+
   async decryptCredential(encryptedCredential: string): Promise<string> {
     const params = {
       CiphertextBlob: Buffer.from(encryptedCredential, 'base64'),
@@ -437,7 +464,7 @@ export class CredentialManager {
         type: 'cloud-credential',
       },
     };
-    
+
     const result = await this.kms.decrypt(params).promise();
     return result.Plaintext!.toString('utf8');
   }
@@ -445,6 +472,7 @@ export class CredentialManager {
 ```
 
 ### Resource Isolation
+
 ```typescript
 // Terraform workspace isolation
 interface TerraformWorkspace {
@@ -465,7 +493,9 @@ interface TerraformWorkspace {
 }
 
 // Generate isolated infrastructure
-export function generateIsolatedInfrastructure(workspace: TerraformWorkspace): string {
+export function generateIsolatedInfrastructure(
+  workspace: TerraformWorkspace
+): string {
   return `
 # VPC Isolation
 resource "aws_vpc" "${workspace.id}_vpc" {
@@ -502,7 +532,9 @@ resource "aws_kms_key" "${workspace.id}_key" {
       {
         Effect = "Allow"
         Principal = {
-          AWS = [${workspace.access.allowedUsers.map(u => `"${u}"`).join(', ')}]
+          AWS = [${workspace.access.allowedUsers
+            .map((u) => `"${u}"`)
+            .join(', ')}]
         }
         Action = "kms:*"
         Resource = "*"
@@ -522,6 +554,7 @@ resource "aws_kms_key" "${workspace.id}_key" {
 ## Security Monitoring
 
 ### Audit Logging
+
 ```typescript
 interface AuditLog {
   id: string;
@@ -559,49 +592,56 @@ export class AuditLogger {
       details: this.sanitizeDetails(details),
       riskScore: this.calculateRiskScore(action, resource, details),
     };
-    
+
     // Store in encrypted audit table
     await this.prisma.auditLog.create({
       data: auditLog,
     });
-    
+
     // High-risk actions trigger alerts
     if (auditLog.riskScore > 8) {
       await this.alertSecurityTeam(auditLog);
     }
   }
-  
+
   private calculateRiskScore(
     action: string,
     resource: string,
     details: Record<string, any>
   ): number {
     let score = 0;
-    
+
     // High-risk actions
-    if (['delete', 'modify_permissions', 'export_credentials'].includes(action)) {
+    if (
+      ['delete', 'modify_permissions', 'export_credentials'].includes(action)
+    ) {
       score += 5;
     }
-    
+
     // Sensitive resources
     if (['users', 'credentials', 'terraform_state'].includes(resource)) {
       score += 3;
     }
-    
+
     // Unusual access patterns
     if (details.offHours || details.unusualLocation) {
       score += 2;
     }
-    
+
     return Math.min(score, 10);
   }
 }
 ```
 
 ### Intrusion Detection
+
 ```typescript
 interface SecurityEvent {
-  type: 'brute_force' | 'unusual_access' | 'suspicious_terraform' | 'data_exfiltration';
+  type:
+    | 'brute_force'
+    | 'unusual_access'
+    | 'suspicious_terraform'
+    | 'data_exfiltration';
   severity: 'low' | 'medium' | 'high' | 'critical';
   description: string;
   metadata: Record<string, any>;
@@ -610,14 +650,14 @@ interface SecurityEvent {
 
 export class IntrusionDetectionSystem {
   private redis: Redis;
-  
+
   async checkBruteForce(userId: string, success: boolean): Promise<void> {
     const key = `login_attempts:${userId}`;
-    
+
     if (!success) {
       const attempts = await this.redis.incr(key);
       await this.redis.expire(key, 900); // 15 minutes
-      
+
       if (attempts >= 5) {
         await this.createSecurityEvent({
           type: 'brute_force',
@@ -626,7 +666,7 @@ export class IntrusionDetectionSystem {
           metadata: { userId, attempts },
           timestamp: new Date(),
         });
-        
+
         // Lock account temporarily
         await this.lockAccount(userId, '30 minutes');
       }
@@ -634,11 +674,11 @@ export class IntrusionDetectionSystem {
       await this.redis.del(key);
     }
   }
-  
+
   async analyzeUnusualAccess(userId: string, ipAddress: string): Promise<void> {
     const userPattern = await this.getUserAccessPattern(userId);
     const location = await this.getLocationFromIP(ipAddress);
-    
+
     if (this.isUnusualLocation(userPattern, location)) {
       await this.createSecurityEvent({
         type: 'unusual_access',
@@ -647,20 +687,20 @@ export class IntrusionDetectionSystem {
         metadata: { userId, ipAddress, location },
         timestamp: new Date(),
       });
-      
+
       // Require additional verification
       await this.requireAdditionalVerification(userId);
     }
   }
-  
+
   async scanTerraformCode(code: string, userId: string): Promise<void> {
     const suspiciousPatterns = [
       /(?:admin|root).*(?:password|secret)/i,
-      /0\.0\.0\.0\/0.*22/,  // SSH open to world
-      /\*.*\*/,            // Wildcard permissions
+      /0\.0\.0\.0\/0.*22/, // SSH open to world
+      /\*.*\*/, // Wildcard permissions
       /hardcoded.*(?:key|token|password)/i,
     ];
-    
+
     for (const pattern of suspiciousPatterns) {
       if (pattern.test(code)) {
         await this.createSecurityEvent({
@@ -679,6 +719,7 @@ export class IntrusionDetectionSystem {
 ## Compliance & Privacy
 
 ### GDPR Compliance
+
 ```typescript
 interface GDPRCompliance {
   dataProcessing: {
@@ -688,12 +729,12 @@ interface GDPRCompliance {
     minimization: boolean;
   };
   userRights: {
-    access: boolean;      // Right to access data
+    access: boolean; // Right to access data
     rectification: boolean; // Right to correct data
-    erasure: boolean;     // Right to be forgotten
+    erasure: boolean; // Right to be forgotten
     portability: boolean; // Right to data portability
     restriction: boolean; // Right to restrict processing
-    objection: boolean;   // Right to object
+    objection: boolean; // Right to object
   };
   privacy: {
     byDesign: boolean;
@@ -708,7 +749,7 @@ export class GDPRService {
     requestType: 'access' | 'rectification' | 'erasure' | 'portability'
   ): Promise<void> {
     await this.logDataRequest(userId, requestType);
-    
+
     switch (requestType) {
       case 'access':
         return await this.exportUserData(userId);
@@ -720,7 +761,7 @@ export class GDPRService {
         return await this.exportPortableData(userId);
     }
   }
-  
+
   async deleteUserData(userId: string): Promise<void> {
     // Anonymize rather than delete for audit compliance
     await this.prisma.$transaction([
@@ -733,7 +774,7 @@ export class GDPRService {
           deletedAt: new Date(),
         },
       }),
-      
+
       // Anonymize audit logs
       this.prisma.auditLog.updateMany({
         where: { userId },
@@ -741,11 +782,11 @@ export class GDPRService {
           userId: 'anonymous',
         },
       }),
-      
+
       // Delete personal designs
       this.prisma.design.deleteMany({
-        where: { 
-          project: { 
+        where: {
+          project: {
             ownerId: userId,
             isPersonal: true,
           },
@@ -757,6 +798,7 @@ export class GDPRService {
 ```
 
 ### Security Compliance Checklist
+
 - [ ] **OWASP Top 10**: All vulnerabilities addressed
 - [ ] **Zero-Trust**: All communications verified and encrypted
 - [ ] **Encryption**: AES-256-GCM at rest, TLS 1.3 in transit
@@ -773,4 +815,5 @@ export class GDPRService {
 - [ ] **Dependency Scanning**: Automated vulnerability scanning
 - [ ] **Security Headers**: HSTS, CSP, and security headers implemented
 
-This security framework ensures Board3 meets enterprise and government security requirements while maintaining usability and performance.
+This security framework ensures Board3 meets enterprise and government security
+requirements while maintaining usability and performance.

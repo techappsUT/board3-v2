@@ -41,9 +41,13 @@ const originalConsole = { ...console };
 
 beforeAll(() => {
   // Mock console methods to reduce noise in tests
+  // eslint-disable-next-line no-console
   console.log = jest.fn();
+  // eslint-disable-next-line no-console
   console.info = jest.fn();
+  // eslint-disable-next-line no-console
   console.warn = jest.fn();
+  // eslint-disable-next-line no-console
   console.error = jest.fn();
 });
 

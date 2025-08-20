@@ -38,7 +38,7 @@ export interface ProjectMember extends BaseEntity {
 export type ProjectRole = 'owner' | 'admin' | 'editor' | 'viewer';
 
 // Project permissions
-export type ProjectPermission = 
+export type ProjectPermission =
   | 'project.read'
   | 'project.update'
   | 'project.delete'

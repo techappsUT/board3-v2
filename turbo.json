@@ -67,11 +67,6 @@
       "cache": false
     }
   },
-  "globalDependencies": [
-    "**/.env.*local",
-    ".env"
-  ],
-  "globalEnv": [
-    "NODE_ENV"
-  ]
+  "globalDependencies": ["**/.env.*local", ".env"],
+  "globalEnv": ["NODE_ENV"]
 }

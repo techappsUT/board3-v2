@@ -50,10 +50,25 @@ export interface TerraformOutput {
 }
 
 // Terraform status
-export type TerraformStatus = 'pending' | 'planning' | 'planned' | 'applying' | 'applied' | 'destroying' | 'destroyed' | 'error';
+export type TerraformStatus =
+  | 'pending'
+  | 'planning'
+  | 'planned'
+  | 'applying'
+  | 'applied'
+  | 'destroying'
+  | 'destroyed'
+  | 'error';
 
 // Resource status
-export type ResourceStatus = 'creating' | 'created' | 'updating' | 'updated' | 'deleting' | 'deleted' | 'error';
+export type ResourceStatus =
+  | 'creating'
+  | 'created'
+  | 'updating'
+  | 'updated'
+  | 'deleting'
+  | 'deleted'
+  | 'error';
 
 // Drift detection
 export type DriftStatus = 'none' | 'detected' | 'checking' | 'error';

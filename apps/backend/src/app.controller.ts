@@ -10,15 +10,18 @@ export class AppController {
   @Get()
   @Version('1')
   @ApiOperation({ summary: 'Get API information' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'API information retrieved successfully',
     schema: {
       type: 'object',
       properties: {
         name: { type: 'string', example: 'Board3 API' },
         version: { type: 'string', example: '1.0.0' },
-        description: { type: 'string', example: 'AI-powered cloud infrastructure management platform API' },
+        description: {
+          type: 'string',
+          example: 'AI-powered cloud infrastructure management platform API',
+        },
         environment: { type: 'string', example: 'development' },
         timestamp: { type: 'string', format: 'date-time' },
         uptime: { type: 'number', example: 12345 },
@@ -31,8 +34,8 @@ export class AppController {
 
   @Get('version')
   @ApiOperation({ summary: 'Get API version' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'API version retrieved successfully',
     schema: {
       type: 'object',

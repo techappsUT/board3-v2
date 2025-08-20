@@ -64,7 +64,7 @@ export const API_ENDPOINTS = {
     MFA_VERIFY: '/auth/mfa/verify',
     MFA_DISABLE: '/auth/mfa/disable',
   },
-  
+
   // Users
   USERS: {
     ME: '/users/me',
@@ -75,7 +75,7 @@ export const API_ENDPOINTS = {
     API_KEYS: '/users/me/api-keys',
     DELETE_ACCOUNT: '/users/me',
   },
-  
+
   // Projects
   PROJECTS: {
     LIST: '/projects',
@@ -87,7 +87,7 @@ export const API_ENDPOINTS = {
     INVITE: '/projects/:id/invite',
     STATS: '/projects/:id/stats',
   },
-  
+
   // Designs
   DESIGNS: {
     LIST: '/projects/:projectId/designs',
@@ -101,7 +101,7 @@ export const API_ENDPOINTS = {
     COLLABORATE: '/projects/:projectId/designs/:id/collaborate',
     COMMENTS: '/projects/:projectId/designs/:id/comments',
   },
-  
+
   // Terraform
   TERRAFORM: {
     PLAN: '/terraform/plan',
@@ -112,7 +112,7 @@ export const API_ENDPOINTS = {
     DRIFT: '/terraform/drift/:designId',
     WORKSPACES: '/terraform/workspaces',
   },
-  
+
   // AI
   AI: {
     GENERATE: '/ai/generate',
@@ -122,7 +122,7 @@ export const API_ENDPOINTS = {
     MODELS: '/ai/models',
     TEMPLATES: '/ai/templates',
   },
-  
+
   // System
   SYSTEM: {
     HEALTH: '/health',
@@ -136,30 +136,30 @@ export const WS_EVENTS = {
   // Connection
   CONNECT: 'connect',
   DISCONNECT: 'disconnect',
-  
+
   // Authentication
   AUTHENTICATE: 'authenticate',
   AUTHENTICATED: 'authenticated',
-  
+
   // Rooms
   JOIN_ROOM: 'join_room',
   LEAVE_ROOM: 'leave_room',
-  
+
   // Design collaboration
   DESIGN_UPDATE: 'design_update',
   CURSOR_MOVE: 'cursor_move',
   NODE_SELECT: 'node_select',
   NODE_UPDATE: 'node_update',
   EDGE_UPDATE: 'edge_update',
-  
+
   // User presence
   USER_JOIN: 'user_join',
   USER_LEAVE: 'user_leave',
   USER_TYPING: 'user_typing',
-  
+
   // Notifications
   NOTIFICATION: 'notification',
-  
+
   // Errors
   ERROR: 'error',
 } as const;

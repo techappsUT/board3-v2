@@ -2,14 +2,6 @@
 const nextConfig = {
   // Enable the new experimental features for performance
   experimental: {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
     serverComponentsExternalPackages: ['@prisma/client'],
   },
 
@@ -62,7 +54,6 @@ const nextConfig = {
 
   // Environment variables validation
   env: {
-    NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
   },
