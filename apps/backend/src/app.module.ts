@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 import { LoggerModule } from 'nestjs-pino';
+import { APP_GUARD } from '@nestjs/core';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -18,6 +19,8 @@ import { HealthModule } from './modules/health/health.module';
 import { configValidationSchema } from './config/validation';
 import { LoggingMiddleware } from './common/middleware/logging.middleware';
 import { SecurityMiddleware } from './common/middleware/security.middleware';
+import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from './modules/auth/guards/permissions.guard';
 
 @Module({
   imports: [
@@ -106,7 +109,17 @@ import { SecurityMiddleware } from './common/middleware/security.middleware';
     HealthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

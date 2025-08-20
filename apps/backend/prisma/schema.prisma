@@ -133,6 +133,7 @@ model User {
   comments          Comment[]
   designShares      DesignShare[]      @relation("SharedBy")
   receivedShares    DesignShare[]      @relation("SharedWith")
+  refreshTokens     RefreshToken[]
 
   @@map("users")
   @@index([email])
@@ -589,4 +590,22 @@ model Session {
   @@index([userId])
   @@index([token])
   @@index([expiresAt])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([isRevoked])
 }

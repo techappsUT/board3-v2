@@ -353,4 +353,28 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       throw error;
     }
   }
+
+  /**
+   * Increment a counter
+   */
+  async incr(key: string): Promise<number> {
+    try {
+      return await this.redis.incr(key);
+    } catch (error) {
+      this.logger.error(`Failed to increment key ${key}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Set with expiry in one command
+   */
+  async setex(key: string, ttl: number, value: string): Promise<void> {
+    try {
+      await this.redis.setex(key, ttl, value);
+    } catch (error) {
+      this.logger.error(`Failed to setex key ${key}:`, error);
+      throw error;
+    }
+  }
 }
