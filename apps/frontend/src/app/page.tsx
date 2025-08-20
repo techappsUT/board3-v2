@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRightIcon, ShieldCheckIcon, LightningBoltIcon, CogIcon } from '@heroicons/react/24/outline';
+import { ArrowRightIcon, ShieldCheckIcon, BoltIcon, CogIcon } from '@heroicons/react/24/outline';
 
 export const metadata: Metadata = {
   title: 'Board3 - AI-Powered Cloud Infrastructure Platform',
@@ -16,7 +16,7 @@ const features = [
   {
     name: 'AI-Powered Generation',
     description: 'Natural language processing to automatically generate infrastructure designs and code.',
-    icon: LightningBoltIcon,
+    icon: BoltIcon,
   },
   {
     name: 'Military-Grade Security',

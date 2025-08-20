@@ -25,7 +25,7 @@ module.exports = {
     },
   },
   testEnvironment: 'node',
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^@board3/types$': '<rootDir>/../../packages/types/src/index.ts',
     '^@board3/shared$': '<rootDir>/../../packages/shared/src/index.ts',

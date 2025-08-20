@@ -61,7 +61,7 @@ async function bootstrap(): Promise<void> {
         enableImplicitConversion: true,
       },
       disableErrorMessages: process.env.NODE_ENV === 'production',
-    })
+    }),
   );
 
   // Global filters
@@ -70,7 +70,7 @@ async function bootstrap(): Promise<void> {
   // Global interceptors
   app.useGlobalInterceptors(
     new LoggingInterceptor(),
-    new TransformInterceptor()
+    new TransformInterceptor(),
   );
 
   // API versioning
@@ -106,7 +106,7 @@ async function bootstrap(): Promise<void> {
           description: 'Enter JWT token',
           in: 'header',
         },
-        'JWT-auth'
+        'JWT-auth',
       )
       .build();
 

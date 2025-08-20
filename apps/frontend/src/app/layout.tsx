@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: process.env.NEXT_PUBLIC_APP_URL,
+    url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
     title: 'Board3 - AI-Powered Cloud Infrastructure Platform',
     description: 'Design, deploy, and manage cloud infrastructure with AI-powered visual tools.',
     siteName: 'Board3',
@@ -44,9 +44,11 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: process.env.GOOGLE_SITE_VERIFICATION,
-  },
+  ...(process.env.GOOGLE_SITE_VERIFICATION && {
+    verification: {
+      google: process.env.GOOGLE_SITE_VERIFICATION,
+    },
+  }),
 };
 
 interface RootLayoutProps {
@@ -67,7 +69,7 @@ export default function RootLayout({ children }: RootLayoutProps): React.JSX.Ele
       <body
         className={cn(
           'min-h-screen bg-background font-sans antialiased',
-          inter.variable
+          inter.variable,
         )}
       >
         <ThemeProvider

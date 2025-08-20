@@ -36,16 +36,16 @@ import { SecurityMiddleware } from './common/middleware/security.middleware';
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-        transport: process.env.NODE_ENV === 'production' 
-          ? undefined 
-          : {
-              target: 'pino-pretty',
-              options: {
-                colorize: true,
-                translateTime: 'HH:MM:ss Z',
-                ignore: 'pid,hostname',
-              },
+        ...(process.env.NODE_ENV !== 'production' && {
+          transport: {
+            target: 'pino-pretty',
+            options: {
+              colorize: true,
+              translateTime: 'HH:MM:ss Z',
+              ignore: 'pid,hostname',
             },
+          },
+        }),
         redact: {
           paths: [
             'req.headers.authorization',
@@ -58,13 +58,13 @@ import { SecurityMiddleware } from './common/middleware/security.middleware';
           remove: true,
         },
         serializers: {
-          req: (req) => ({
+          req: (req: any) => ({
             method: req.method,
             url: req.url,
             userAgent: req.headers['user-agent'],
             ip: req.ip,
           }),
-          res: (res) => ({
+          res: (res: any) => ({
             statusCode: res.statusCode,
           }),
         },

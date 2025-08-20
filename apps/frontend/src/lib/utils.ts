@@ -1,5 +1,5 @@
 import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwindcss-merge';
+import { twMerge } from 'tailwind-merge';
 
 /**
  * Utility function to merge Tailwind CSS classes with clsx
@@ -51,7 +51,7 @@ export function formatDuration(ms: number): string {
  */
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
-  wait: number
+  wait: number,
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout;
   
@@ -74,7 +74,7 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
-  limit: number
+  limit: number,
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean;
   
@@ -149,7 +149,10 @@ export function capitalize(str: string): string {
  * @returns kebab-case string
  */
 export function camelToKebab(str: string): string {
-  return str.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase();
+  return str
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .toLowerCase();
 }
 
 /**
@@ -158,7 +161,7 @@ export function camelToKebab(str: string): string {
  * @returns camelCase string
  */
 export function kebabToCamel(str: string): string {
-  return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+  return str.replace(/-([a-z])/g, (g) => g[1]?.toUpperCase() || g);
 }
 
 /**
@@ -193,6 +196,9 @@ export function getRelativeTime(date: Date): string {
  * @returns Sanitized HTML string
  */
 export function sanitizeHtml(html: string): string {
+  if (typeof document === 'undefined') {
+    return html; // Return as-is on server side
+  }
   const div = document.createElement('div');
   div.textContent = html;
   return div.innerHTML;
